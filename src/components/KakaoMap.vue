@@ -65,22 +65,34 @@ export default {
       this.showCurrentPosition();
     },
     showCurrentPosition() {
-      if (this.currentOverlay) this.currentOverlay.setMap(null);
-      const $this = this;
-      const current_content = '<div><img class="pulse" draggable="false" unselectable="on" src="https://ssl.pstatic.net/static/maps/m/pin_rd.png" alt=""></div>';
-      this.currentOverlay = new kakao.maps.CustomOverlay({
-        position: new kakao.maps.LatLng($this.latitude, $this.longitude),
-        content: current_content,
-        map: $this.map
+      if (this.marker) {
+        this.marker.setMap(null);
+        this.mode = this.mode == 'default' ? 'wink' : 'default';
+      } else {
+        this.mode = 'default';
+      }
+      
+      const imageSrc = `./img/current-monkey-${this.mode}.png`,
+            imageSize = new kakao.maps.Size(64,64);
+      
+      const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize),
+            markerPosition = new kakao.maps.LatLng(this.latitude, this.longitude);
+      
+      this.marker = new kakao.maps.Marker({
+        position: markerPosition,
+        image: markerImage
       });
-      this.currentOverlay.setMap(this.map);
+      
+      kakao.maps.event.addListener(this.marker, 'click', this.showCurrentPosition);
+
+      this.marker.setMap(this.map);
     },
     zoomIn() {
       this.map.setLevel(this.map.getLevel() - 1, {animate: true});
     },
     zoomOut() {
       this.map.setLevel(this.map.getLevel() + 1, {animate: true});
-    },
+    }
   },
 };
 </script>
@@ -117,6 +129,7 @@ export default {
 
 @media (hover:hover) {
   .access-location:hover { background-position: -153px -400px; }
+  #current-icon:hover {content: './img/current-monkey-wink.png';}
 }
 
 .zoom-btn {
