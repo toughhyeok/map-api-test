@@ -71,7 +71,7 @@ export default {
       } else {
         this.mode = 'default';
       }
-      
+
       const imageSrc = `./img/current-monkey-${this.mode}.png`,
             imageSize = new kakao.maps.Size(64,64);
       
@@ -83,7 +83,7 @@ export default {
         image: markerImage
       });
       
-      kakao.maps.event.addListener(this.marker, 'click', this.showCurrentPosition);
+      kakao.maps.event.addListener(this.marker, 'click', this.moveCurrentPosition);
 
       this.marker.setMap(this.map);
     },
@@ -123,7 +123,6 @@ export default {
   position: relative;
   width: 32px;
   height: 32px;
-  padding: 1px 3px 5px;
   background: url(//t1.daumcdn.net/localimg/localimages/07/2018/pc/common/img_search.png) no-repeat -153px -450px;
 }
 
@@ -133,6 +132,7 @@ export default {
 }
 
 .zoom-btn {
+  margin-top: 10px;
   width: 32px;
   border-radius: 3px;
   box-shadow: rgb(0 0 0 / 15%) 0px 2px 2px 0px;
