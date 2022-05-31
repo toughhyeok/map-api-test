@@ -73,9 +73,12 @@ export default {
       }
 
       const imageSrc = `./img/current-monkey-${this.mode}.png`,
-            imageSize = new kakao.maps.Size(64,64);
+            imageSize = new kakao.maps.Size(64,64),
+            imageOption = {
+              alt: "원숭이 아이콘  제작자: smalllikeart - Flaticon"
+            };
       
-      const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize),
+      const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption),
             markerPosition = new kakao.maps.LatLng(this.latitude, this.longitude);
       
       this.marker = new kakao.maps.Marker({
@@ -170,14 +173,4 @@ export default {
   border-radius: 0px 0px 3px 3px;
   margin: -1px 0px 0px;
 }
-
-.pulse-container {
-  width: 20px;
-  height: 20px;
-}
-
-.pulse {
-  object-fit: scale-down;
-}
-
 </style>
