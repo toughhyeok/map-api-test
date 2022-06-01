@@ -1,6 +1,25 @@
 # map-api-test
 
-## Project setup
+## (hyeok-guide) Project setup
+
+### vue-cli install
+```
+npm install -g vue-cli
+```
+
+### node module install
+```
+npm install
+```
+
+### Compiles and hot-reloads for development (--mode development)
+```
+npm run start
+```
+
+---
+
+## (Vue-guide) Project setup
 ```
 npm install
 ```
