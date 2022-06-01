@@ -1,5 +1,12 @@
 <template>
   <div>
+    <div>
+      <side-bar></side-bar>
+    </div>
+    <div id="shadow" class="Shadow" style="height: 833px;">
+      <div class="bar"></div>
+      <span id="shadow.toggle" class="toggle"></span>
+    </div>
     <div class="MapControlView">
       <a href="#" class="access-location" @click="moveCurrentPosition"></a>
       <div class="zoom-btn">
@@ -12,8 +19,13 @@
 </template>
 
 <script>
+import SideBar from "./SideBar.vue"
+
 export default {
   name: "KakaoMap",
+  components: {
+    SideBar
+  },
   data() {
     return {
       latitude: 37.56678,
@@ -102,13 +114,35 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.mapContainer{
-  position:absolute;
-  width: 100%;
+Shadow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 390px;
+  z-index: 20;
   height: 100%;
 }
 
+.Shadow > .bar {
+  overflow: hidden;
+  width: 4px;
+  background: url(//t1.daumcdn.net/localimg/localimages/07/2018/pc/shadow/map_shadow.png) repeat-y;
+}
+
+.mapContainer{
+  overflow: hidden;
+  position: absolute;
+  bottom: 0;
+  top: 0;
+  left: 390px;
+  right: 0;
+  z-index: 0;
+}
+
 #map{
+  position: absolute;
+  left: 0px;
+  top: 0px;
   width: 100%;
   height: 100%;
 }
