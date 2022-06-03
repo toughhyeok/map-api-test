@@ -1,12 +1,5 @@
 <template>
   <div>
-    <div>
-      <side-bar></side-bar>
-    </div>
-    <div id="shadow" class="Shadow" style="height: 833px;">
-      <div class="bar"></div>
-      <span id="shadow.toggle" class="toggle"></span>
-    </div>
     <div class="MapControlView">
       <a href="#" class="access-location" @click="moveCurrentPosition"></a>
       <div class="zoom-btn">
@@ -14,20 +7,47 @@
         <span class="zoom-out-btn" @click="zoomOut"></span>
       </div>
     </div>
-    <div class="mapContainer"><div id="map"></div></div>
+
+    <div class="shadow" :style="{left: 0}">
+      <div class="bar"></div>
+      <span class="sidebar-btn" :style="{'background-position-y': '0px'}"></span>
+    </div>
+
+    <div class="mapContainer" :style="mapContainer">
+      <div id="map"></div>
+    </div>
+
   </div>
 </template>
 
 <script>
-import SideBar from "./SideBar.vue"
-
 export default {
   name: "KakaoMap",
-  components: {
-    SideBar
-  },
   data() {
     return {
+      mapContainer: {
+        overflow: 'hidden',
+        position: 'absolute',
+        bottom: 0,
+        top: 0,
+        left: 0,
+        right: 0
+      },
+      sidebarBtn: {
+        background: 'src/assets/mynav_btn.png',
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        margin: 'auto',
+        width: '22px',
+        height: '54px',
+        font_size: 0,
+        line_height: 0,
+        // background: '"src/assets/mynav_btn.png" no-repeat 0 0',
+        text_indent: '-9999px',
+        cursor: 'pointer'
+      },
       latitude: 37.56678,
       longitude: 126.97913
     }
@@ -52,8 +72,6 @@ export default {
         level: 5,
       };
 
-      //지도 객체를 등록합니다.
-      //지도 객체는 반응형 관리 대상이 아니므로 initMap에서 선언합니다.
       this.map = new kakao.maps.Map(container, options);
     },
     setCurrentPosition() {
@@ -112,9 +130,8 @@ export default {
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-Shadow {
+.shadow {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -123,20 +140,34 @@ Shadow {
   height: 100%;
 }
 
-.Shadow > .bar {
-  overflow: hidden;
-  width: 4px;
-  background: url(//t1.daumcdn.net/localimg/localimages/07/2018/pc/shadow/map_shadow.png) repeat-y;
-}
-
-.mapContainer{
+.sidebar-btn {
   overflow: hidden;
   position: absolute;
-  bottom: 0;
   top: 0;
-  left: 390px;
-  right: 0;
-  z-index: 0;
+  bottom: 0;
+  left: 0;
+  margin: auto;
+  width: 22px;
+  height: 54px;
+  font-size: 0;
+  line-height: 0;
+  background-image: url('~@/assets/mynav_btn.png');
+  background-position-x: 0px;
+  background-position-y: -66px;
+  background-size: initial;
+  background-repeat: no-repeat;
+  text-indent: -9999px;
+  cursor: pointer;
+}
+
+.bar {
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  height: 100%;
+  background: url(//t1.daumcdn.net/localimg/localimages/07/2018/pc/shadow/map_shadow.png) repeat-y;
 }
 
 #map{
