@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <KakaoMap />
+    <KakaoMap :start_lat="36.2606" :start_lng="127.4027" />
   </div>
 </template>
 

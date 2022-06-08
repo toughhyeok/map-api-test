@@ -1,19 +1,22 @@
 <template>
   <div>
     <div class="MapControlView">
-      <a href="#" class="access-location" @click="moveCurrentPosition"></a>
+      <a href="#" class="current-marker" @click="onCurrentMarkerBtn"></a>
+      <a href="#" class="access-location" @click="onCurrntBtn"></a>
       <div class="zoom-btn">
         <span class="zoom-in-btn" @click="zoomIn"></span>  
         <span class="zoom-out-btn" @click="zoomOut"></span>
       </div>
     </div>
 
-    <div class="shadow" :style="{left: 0}">
+    <div class="shadow" :style="{left: barShadowLeft}">
       <div class="bar"></div>
-      <span class="sidebar-btn" :style="{'background-position-y': '0px'}"></span>
+      <span class="sidebar-btn" :style="{'background-position-y': sidebarBtnPostion}"
+        @click="onSideBarBtn">
+      </span>
     </div>
 
-    <div class="mapContainer" :style="mapContainer">
+    <div class="mapContainer" :style="{left: mapContainerLeft}">
       <div id="map"></div>
     </div>
 
@@ -23,85 +26,107 @@
 <script>
 export default {
   name: "KakaoMap",
+  props: {
+    start_lat: {
+      type: Number,
+      required: true
+    },
+    start_lng: {
+      type: Number,
+      required: true
+    }
+  },
   data() {
     return {
-      mapContainer: {
-        overflow: 'hidden',
-        position: 'absolute',
-        bottom: 0,
-        top: 0,
-        left: 0,
-        right: 0
-      },
-      sidebarBtn: {
-        background: 'src/assets/mynav_btn.png',
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-        left: 0,
-        margin: 'auto',
-        width: '22px',
-        height: '54px',
-        font_size: 0,
-        line_height: 0,
-        // background: '"src/assets/mynav_btn.png" no-repeat 0 0',
-        text_indent: '-9999px',
-        cursor: 'pointer'
-      },
-      latitude: 37.56678,
-      longitude: 126.97913
+      barShadowLeft: '390px',
+      sidebarBtnPostion: 0,
+      mapContainerLeft: '390px',
+    }
+  },
+  watch: {
+    barShadowLeft() {
+      this.mapContainerLeft = this.barShadowLeft;
+      if (this.barShadowLeft) this.sidebarBtnPostion = 0;
+      else this.sidebarBtnPostion = '-66px';
+      this.setPostPosition();
+      setTimeout(this.movePostPosition, 0.1);
     }
   },
   mounted() {
-    this.setCurrentPosition();
     if (window.kakao && window.kakao.maps) {
       this.initMap();
     } else {
       const script = document.createElement("script");
       script.onload = () => kakao.maps.load(this.initMap);
       script.src =
-        `//dapi.kakao.com/v2/maps/sdk.js?autoload=false&appkey=${process.env.VUE_APP_KAKAO_MAP_SERVICE_KEY}`;
+        `//dapi.kakao.com/v2/maps/sdk.js?autoload=false&appkey=${process.env.VUE_APP_KAKAO_MAP_SERVICE_KEY}&libraries=services`;
       document.head.appendChild(script);
     }
   },
   methods: {
     initMap() {
+      this.getStationsInfo();
+      this.setCurrentPosition();
+
       const container = document.getElementById("map");
       const options = {
-        center: new kakao.maps.LatLng(this.latitude, this.longitude),
-        level: 5,
+        center: new kakao.maps.LatLng(this.start_lat, this.start_lng),
+        level: 13,
       };
-
+      
       this.map = new kakao.maps.Map(container, options);
+    },
+    getStationsInfo() {
+      const $this = this;
+      this.$axios.get(`http://openapi.seoul.go.kr:8088/${process.env.VUE_APP_DATA_SEOUL_AUTH_KEY}/json/StationAdresTelno/1/5/`)
+        .then(response => {
+          $this.stationsInfo = response.data.StationAdresTelno;
+          console.log(response);
+        });
     },
     setCurrentPosition() {
       if (navigator.geolocation) {
       const $this = this;
       navigator.geolocation.getCurrentPosition(function(position) {
-        $this.latitude = position.coords.latitude;
-        $this.longitude = position.coords.longitude;
+        $this.cur_lat = position.coords.latitude;
+        $this.cur_lng = position.coords.longitude;
       });
-    }
+      }
     },
-    changeSize(size) {
-      const container = document.getElementById("map");
-      container.style.width = `${size}px`;
-      container.style.height = `${size}px`;
-      this.map.relayout();
+    movePositionSmooth(lat, lng) {
+      if (!lat || !lng) return;
+      this.relayout();
+      this.map.panTo(new kakao.maps.LatLng(lat, lng));
     },
-    moveCurrentPosition() {
+    movePosition(lat, lng) {
+      if (!lat || !lng) return;
+      this.relayout();
+      this.map.setCenter(new kakao.maps.LatLng(lat, lng));
+    },
+    setPostPosition() {
+      const tmp_pos = this.getCenter();
+      this.post_lat = tmp_pos.Ma, this.post_lng = tmp_pos.La;
+    },
+    movePostPosition() {
+      this.movePosition(this.post_lat, this.post_lng);
+    },
+    onCurrntBtn() {
       this.setCurrentPosition();
-      this.map.panTo(new kakao.maps.LatLng(this.latitude, this.longitude));
-      this.showCurrentPosition();
+      this.movePositionSmooth(this.cur_lat, this.cur_lng);
     },
-    showCurrentPosition() {
+    onCurrentMarkerBtn() {
       if (this.marker) {
-        this.marker.setMap(null);
-        this.mode = this.mode == 'default' ? 'wink' : 'default';
+        this.deleteCurrentMarker();
       } else {
         this.mode = 'default';
+        this.makeCurrentMarker();
       }
-
+    },
+    onSideBarBtn() {
+      if (this.barShadowLeft) this.barShadowLeft = 0;
+      else this.barShadowLeft = '390px';
+    },
+    makeCurrentMarker() {
       const imageSrc = `./img/current-monkey-${this.mode}.png`,
             imageSize = new kakao.maps.Size(64,64),
             imageOption = {
@@ -109,23 +134,40 @@ export default {
             };
       
       const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption),
-            markerPosition = new kakao.maps.LatLng(this.latitude, this.longitude);
+            markerPosition = new kakao.maps.LatLng(this.cur_lat, this.cur_lng);
       
       this.marker = new kakao.maps.Marker({
         position: markerPosition,
         image: markerImage
       });
-      
-      kakao.maps.event.addListener(this.marker, 'click', this.moveCurrentPosition);
+      kakao.maps.event.addListener(this.marker, 'click', this.changeCurrentMarker);
 
       this.marker.setMap(this.map);
+    },
+    deleteCurrentMarker() {
+      this.marker.setMap(null);
+      this.marker = null;
+    },
+    changeCurrentMarker() {
+      this.deleteCurrentMarker();
+      this.mode = this.mode == 'default' ? 'wink' : 'default';
+      this.makeCurrentMarker();
     },
     zoomIn() {
       this.map.setLevel(this.map.getLevel() - 1, {animate: true});
     },
     zoomOut() {
       this.map.setLevel(this.map.getLevel() + 1, {animate: true});
-    }
+    },
+    relayout() {
+      this.map.relayout();
+    },
+    getCenter() {
+      return this.map.getCenter();
+    },
+    getLevel() {
+      return this.map.getLevel();
+    },
   },
 };
 </script>
@@ -170,6 +212,16 @@ export default {
   background: url(//t1.daumcdn.net/localimg/localimages/07/2018/pc/shadow/map_shadow.png) repeat-y;
 }
 
+.mapContainer{
+  overflow: hidden;
+  position: absolute;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 0;
+}
+
 #map{
   position: absolute;
   left: 0px;
@@ -187,6 +239,7 @@ export default {
 }
 
 .access-location {
+  margin-top: 0px;
   display: block;
   position: relative;
   width: 32px;
@@ -194,13 +247,23 @@ export default {
   background: url(//t1.daumcdn.net/localimg/localimages/07/2018/pc/common/img_search.png) no-repeat -153px -450px;
 }
 
+.current-marker {
+  border-radius: 0.3rem;
+  display: block;
+  position: relative;
+  width: 32px;
+  height: 32px;
+  background: url('~@/assets/current-monkey-default-btn.png') no-repeat;
+}
+
 @media (hover:hover) {
   .access-location:hover { background-position: -153px -400px; }
   #current-icon:hover {content: './img/current-monkey-wink.png';}
+  .current-marker:hover {background: url('~@/assets/current-monkey-wink-btn.png') no-repeat;}
 }
 
 .zoom-btn {
-  margin-top: 10px;
+  margin-top: 14px;
   width: 32px;
   border-radius: 3px;
   box-shadow: rgb(0 0 0 / 15%) 0px 2px 2px 0px;
