@@ -49,7 +49,7 @@ export default {
       if (this.barShadowLeft) this.sidebarBtnPostion = 0;
       else this.sidebarBtnPostion = '-66px';
       this.setPostPosition();
-      setTimeout(this.movePostPosition, 0.1);
+      setTimeout(this.movePostPosition, 1);
     }
   },
   mounted() {
